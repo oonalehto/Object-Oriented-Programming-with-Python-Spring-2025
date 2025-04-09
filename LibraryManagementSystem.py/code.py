@@ -1,5 +1,7 @@
 import json
 from datetime import datetime, timedelta
+import tkinter as tk
+from tkinter import simpledialog, messagebox
 
 # Book Class
 class Book:
@@ -109,113 +111,53 @@ class Library:
         except FileNotFoundError:
             pass
 
-# Interactive menu
-def interactive_search(library):
-    while True:
-        print("\nValitse toiminto:")
-        print("1. Hae kirjaa nimen perusteella")
-        print("2. Hae kirjaa kirjailijan perusteella")
-        print("3. Näytä kaikki kirjat")
-        print("4. Lisää uusi kirja")
-        print("5. Poista kirja")
-        print("6. Lainaa kirja")
-        print("7. Palauta kirja")
-        print("8. Poistu")
-        choice = input("Valinta: ")
-
-        if choice == "1":
-            title = input("Anna kirjan nimi tai osa siitä: ")
-            results = Catalog.search_by_title(library, title)
-
-        elif choice == "2":
-            author = input("Anna kirjailijan nimi tai osa siitä: ")
-            results = Catalog.search_by_author(library, author)
-
-        elif choice == "3":
-            results = library.books if library.books else "Ei kirjoja saatavilla."
-
-        elif choice == "4":
-            title = input("Kirjan nimi: ")
-            author = input("Kirjailija: ")
-            isbn = input("ISBN: ")
-            new_book = Book(title, author, isbn)
-            library.books.append(new_book)
-            library.save_data()
-            print(f"Kirja '{title}' lisätty kirjastoon.")
-            continue
-
-        elif choice == "5":
-            if not library.books:
-                print("Kirjastossa ei ole kirjoja.")
-                continue
-            print("\nKirjat kirjastossa:")
-            for idx, book in enumerate(library.books, 1):
-                print(f"{idx}. {book}")
-            try:
-                selection = int(input("Anna poistettavan kirjan numero: "))
-                if 1 <= selection <= len(library.books):
-                    removed_book = library.books.pop(selection - 1)
-                    library.save_data()
-                    print(f"Kirja '{removed_book.title}' poistettu.")
-                else:
-                    print("Virheellinen numero.")
-            except ValueError:
-                print("Anna kelvollinen numero.")
-            continue
-
-        elif choice == "6":
-            try:
-                user_id = int(input("Syötä käyttäjän ID: "))
-                user = next((u for u in library.users if u.user_id == user_id and isinstance(u, Borrower)), None)
-                if not user:
-                    print("Lainaaja ei löytynyt.")
-                    continue
-                if not library.books:
-                    print("Ei kirjoja saatavilla.")
-                    continue
-                print("\nSaatavilla olevat kirjat:")
-                for idx, book in enumerate(library.books, 1):
-                    print(f"{idx}. {book}")
-                selection = int(input("Valitse lainattavan kirjan numero: "))
-                if 1 <= selection <= len(library.books):
-                    library.borrow_book(user, library.books[selection - 1])
-                else:
-                    print("Virheellinen valinta.")
-            except ValueError:
-                print("Syötä kelvollinen numero.")
-
-        elif choice == "7":
-            try:
-                user_id = int(input("Syötä käyttäjän ID: "))
-                user = next((u for u in library.users if u.user_id == user_id and isinstance(u, Borrower)), None)
-                if not user:
-                    print("Lainaaja ei löytynyt.")
-                    continue
-                library.return_book(user)
-            except ValueError:
-                print("Syötä kelvollinen numero.")
-
-        elif choice == "8":
-            print("Poistutaan valikosta.")
-            break
-
+# Graafinen käyttöliittymä (GUI)
+def popup_ui(library):
+    def search_books():
+        query = simpledialog.askstring("Haku", "Anna kirjan nimi tai kirjailija:")
+        if not query:
+            return
+        results_title = Catalog.search_by_title(library, query)
+        results_author = Catalog.search_by_author(library, query)
+        results = set(results_title if isinstance(results_title, list) else []) | \
+                  set(results_author if isinstance(results_author, list) else [])
+        if results:
+            msg = "\n".join(str(book) for book in results)
         else:
-            print("Virheellinen valinta.")
-            continue
+            msg = "Ei tuloksia."
+        messagebox.showinfo("Hakutulokset", msg)
 
-        if 'results' in locals():
-            if isinstance(results, list):
-                if not results:
-                    print("Ei tuloksia.")
-                else:
-                    print("\nHakutulokset:")
-                    for book in results:
-                        print(f"- {book}")
-            else:
-                print(results)
-            del results
+    def add_book_popup():
+        title = simpledialog.askstring("Lisää kirja", "Kirjan nimi:")
+        author = simpledialog.askstring("Lisää kirja", "Kirjailija:")
+        isbn = simpledialog.askstring("Lisää kirja", "ISBN:")
+        if title and author and isbn:
+            new_book = Book(title, author, isbn)
+            librarian.add_book(library, new_book)
+            messagebox.showinfo("Lisäys", f"Kirja '{title}' lisätty.")
+        else:
+            messagebox.showwarning("Virhe", "Kaikki kentät ovat pakollisia.")
 
-# Main Function
+    def list_books():
+        if not library.books:
+            messagebox.showinfo("Kirjat", "Ei kirjoja kirjastossa.")
+        else:
+            msg = "\n".join(str(book) for book in library.books)
+            messagebox.showinfo("Kirjat", msg)
+
+    root = tk.Tk()
+    root.title("Kirjasto")
+    root.geometry("300x250")
+
+    tk.Label(root, text="Valitse toiminto:", font=("Arial", 12)).pack(pady=10)
+    tk.Button(root, text="Hae kirjaa", width=20, command=search_books).pack(pady=5)
+    tk.Button(root, text="Lisää uusi kirja", width=20, command=add_book_popup).pack(pady=5)
+    tk.Button(root, text="Näytä kaikki kirjat", width=20, command=list_books).pack(pady=5)
+    tk.Button(root, text="Sulje", width=20, command=root.destroy).pack(pady=20)
+
+    root.mainloop()
+
+# Pääohjelma
 if __name__ == "__main__":
     my_library = Library()
 
@@ -228,17 +170,15 @@ if __name__ == "__main__":
     # Esimerkkikirjat
     book1 = Book("1984", "George Orwell", "123456")
     book2 = Book("To Kill a Mockingbird", "Harper Lee", "789101")
+    book3 = Book("Hedelmät", "Hedelmät", "15635656")
 
-    book3 = Book("Hedelmät", "Hedelmät","15635656")
-    # Add Books to Library
     librarian.add_book(my_library, book1)
     librarian.add_book(my_library, book2)
     librarian.add_book(my_library, book3)
-    
-    # Borrow/Return examples
+
     borrower.borrow_book(my_library, book1)
     borrower.return_book(my_library)
     borrower.borrow_book(my_library, book3)
 
-    # Interaktiivinen valikko
-    interactive_search(my_library)
+    # Käynnistä GUI
+    popup_ui(my_library)
