@@ -228,10 +228,23 @@ if __name__ == "__main__":
     # Esimerkkikirjat
     book1 = Book("1984", "George Orwell", "123456")
     book2 = Book("To Kill a Mockingbird", "Harper Lee", "789101")
+<<<<<<< Updated upstream
     if book1 not in my_library.books:
         librarian.add_book(my_library, book1)
     if book2 not in my_library.books:
         librarian.add_book(my_library, book2)
+=======
+    book3 = Book("Hedelmät", "Hedelmät","15635656")
+    # Add Books to Library
+    librarian.add_book(my_library, book1)
+    librarian.add_book(my_library, book2)
+    librarian.add_book(my_library, book3)
+    
+    # Borrow/Return examples
+    borrower.borrow_book(my_library, book1)
+    borrower.return_book(my_library)
+    borrower.borrow_book(my_library, book3)
+>>>>>>> Stashed changes
 
     # Interaktiivinen valikko
     interactive_search(my_library)
