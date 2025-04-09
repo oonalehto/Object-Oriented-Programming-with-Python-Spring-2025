@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from catalog import Catalog
+from book import Book
+from user import Borrower
 
 def popup_ui(library, librarian, borrower):
     def search_books():
