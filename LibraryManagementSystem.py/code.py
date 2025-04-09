@@ -40,7 +40,7 @@ class Borrower(User):
     def borrow_book(self, library, book):
         if book in library.books:
             library.books.remove(book)
-            due_date = datetime.now() + timedelta(days=14)  # 2 weeks loan period
+            due_date = datetime.now() + timedelta(days=14)
             library.borrowed_books[self.user_id] = (book, due_date)
             library.save_data()
             print(f"{self.name} borrowed '{book.title}'. Due date: {due_date.strftime('%Y-%m-%d')}")
@@ -92,7 +92,7 @@ class Library:
         data = {
             "books": [(book.title, book.author, book.isbn) for book in self.books],
             "borrowed_books": {user_id: (book.title, book.author, book.isbn, due_date.strftime('%Y-%m-%d'))
-                                for user_id, (book, due_date) in self.borrowed_books.items()}
+                               for user_id, (book, due_date) in self.borrowed_books.items()}
         }
         with open("library_data.json", "w") as f:
             json.dump(data, f)
@@ -109,7 +109,7 @@ class Library:
         except FileNotFoundError:
             pass
 
-# Interactive search and management
+# Interactive menu
 def interactive_search(library):
     while True:
         print("\nValitse toiminto:")
@@ -118,17 +118,22 @@ def interactive_search(library):
         print("3. Näytä kaikki kirjat")
         print("4. Lisää uusi kirja")
         print("5. Poista kirja")
-        print("6. Poistu")
+        print("6. Lainaa kirja")
+        print("7. Palauta kirja")
+        print("8. Poistu")
         choice = input("Valinta: ")
 
         if choice == "1":
             title = input("Anna kirjan nimi tai osa siitä: ")
             results = Catalog.search_by_title(library, title)
+
         elif choice == "2":
             author = input("Anna kirjailijan nimi tai osa siitä: ")
             results = Catalog.search_by_author(library, author)
+
         elif choice == "3":
             results = library.books if library.books else "Ei kirjoja saatavilla."
+
         elif choice == "4":
             title = input("Kirjan nimi: ")
             author = input("Kirjailija: ")
@@ -138,6 +143,7 @@ def interactive_search(library):
             library.save_data()
             print(f"Kirja '{title}' lisätty kirjastoon.")
             continue
+
         elif choice == "5":
             if not library.books:
                 print("Kirjastossa ei ole kirjoja.")
@@ -156,46 +162,76 @@ def interactive_search(library):
             except ValueError:
                 print("Anna kelvollinen numero.")
             continue
+
         elif choice == "6":
+            try:
+                user_id = int(input("Syötä käyttäjän ID: "))
+                user = next((u for u in library.users if u.user_id == user_id and isinstance(u, Borrower)), None)
+                if not user:
+                    print("Lainaaja ei löytynyt.")
+                    continue
+                if not library.books:
+                    print("Ei kirjoja saatavilla.")
+                    continue
+                print("\nSaatavilla olevat kirjat:")
+                for idx, book in enumerate(library.books, 1):
+                    print(f"{idx}. {book}")
+                selection = int(input("Valitse lainattavan kirjan numero: "))
+                if 1 <= selection <= len(library.books):
+                    library.borrow_book(user, library.books[selection - 1])
+                else:
+                    print("Virheellinen valinta.")
+            except ValueError:
+                print("Syötä kelvollinen numero.")
+
+        elif choice == "7":
+            try:
+                user_id = int(input("Syötä käyttäjän ID: "))
+                user = next((u for u in library.users if u.user_id == user_id and isinstance(u, Borrower)), None)
+                if not user:
+                    print("Lainaaja ei löytynyt.")
+                    continue
+                library.return_book(user)
+            except ValueError:
+                print("Syötä kelvollinen numero.")
+
+        elif choice == "8":
             print("Poistutaan valikosta.")
             break
+
         else:
             print("Virheellinen valinta.")
             continue
 
-        # Näytä hakutulokset
-        if isinstance(results, list):
-            if not results:
-                print("Ei tuloksia.")
+        if 'results' in locals():
+            if isinstance(results, list):
+                if not results:
+                    print("Ei tuloksia.")
+                else:
+                    print("\nHakutulokset:")
+                    for book in results:
+                        print(f"- {book}")
             else:
-                print("\nHakutulokset:")
-                for book in results:
-                    print(f"- {book}")
-        else:
-            print(results)
+                print(results)
+            del results
 
-# Main Function for Testing
+# Main Function
 if __name__ == "__main__":
-    # Initialize Library
     my_library = Library()
-    
-    # Create Users
+
+    # Käyttäjät
     librarian = Librarian("Alice", 1)
     borrower = Borrower("Bob", 2)
     my_library.add_user(librarian)
     my_library.add_user(borrower)
 
-    # Create Books
+    # Esimerkkikirjat
     book1 = Book("1984", "George Orwell", "123456")
     book2 = Book("To Kill a Mockingbird", "Harper Lee", "789101")
-    
-    # Add Books to Library
-    librarian.add_book(my_library, book1)
-    librarian.add_book(my_library, book2)
-    
-    # Borrow/Return examples
-    borrower.borrow_book(my_library, book1)
-    borrower.return_book(my_library)
+    if book1 not in my_library.books:
+        librarian.add_book(my_library, book1)
+    if book2 not in my_library.books:
+        librarian.add_book(my_library, book2)
 
-    # Käynnistä interaktiivinen valikko
+    # Interaktiivinen valikko
     interactive_search(my_library)
