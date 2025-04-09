@@ -9,8 +9,14 @@ if __name__ == "__main__":
     # Create users
     librarian = Librarian("Alice", 1)
     borrower = Borrower("Bob", 2)
+    borrower1 = Borrower("Jonna", 3)
+    borrower2 = Borrower("Rosa", 4)
+    borrower3 = Borrower("Oona", 5)
     my_library.add_user(librarian)
     my_library.add_user(borrower)
+    my_library.add_user(borrower1)
+    my_library.add_user(borrower2)
+    my_library.add_user(borrower3)
 
     # Create books and add them
     book1 = Book("Hedelmät", "Hedelmät", "15635656")
