@@ -13,18 +13,14 @@ if __name__ == "__main__":
     my_library.add_user(borrower)
 
     # Create books and add them
-    book1 = Book("1984", "George Orwell", "123456")
-    book2 = Book("To Kill a Mockingbird", "Harper Lee", "789101")
-    book3 = Book("Hedelmät", "Hedelmät", "15635656")
+    book1 = Book("Hedelmät", "Hedelmät", "15635656")
 
     librarian.add_book(my_library, book1)
-    librarian.add_book(my_library, book2)
-    librarian.add_book(my_library, book3)
 
     # Simulate borrowing and returning
     borrower.borrow_book(my_library, book1)
     borrower.return_book(my_library)
-    borrower.borrow_book(my_library, book3)
+    borrower.borrow_book(my_library, book1)
 
     # Run GUI
     popup_ui(my_library, librarian, borrower)
