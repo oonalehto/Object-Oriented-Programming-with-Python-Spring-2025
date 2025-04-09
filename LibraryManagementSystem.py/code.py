@@ -18,11 +18,7 @@ class User:
         self.user_id = user_id
 
     def view_books(self, library):
-        if not library.books:
-            print("No books available in the library.")
-        else:
-            for book in library.books:
-                print(book)
+        print(f"Kirjastossa on {len(library.books)} kirjaa. Käytä hakutoimintoa nähdäksesi ne.")
 
 # Librarian Class
 class Librarian(User):
@@ -111,6 +107,41 @@ class Library:
         except FileNotFoundError:
             pass
 
+# Interactive search function
+def interactive_search(library):
+    while True:
+        print("\nHae kirjaa:")
+        print("1. Hae nimen perusteella")
+        print("2. Hae kirjailijan perusteella")
+        print("3. Näytä kaikki kirjat")
+        print("4. Poistu")
+        choice = input("Valinta: ")
+
+        if choice == "1":
+            title = input("Anna kirjan nimi tai osa siitä: ")
+            results = Catalog.search_by_title(library, title)
+        elif choice == "2":
+            author = input("Anna kirjailijan nimi tai osa siitä: ")
+            results = Catalog.search_by_author(library, author)
+        elif choice == "3":
+            results = library.books if library.books else "Ei kirjoja saatavilla."
+        elif choice == "4":
+            print("Poistutaan hausta.")
+            break
+        else:
+            print("Virheellinen valinta.")
+            continue
+
+        if isinstance(results, list):
+            if not results:
+                print("Ei tuloksia.")
+            else:
+                print("\nHakutulokset:")
+                for book in results:
+                    print(f"- {book}")
+        else:
+            print(results)
+
 # Main Function for Testing
 if __name__ == "__main__":
     # Initialize Library
@@ -130,15 +161,14 @@ if __name__ == "__main__":
     librarian.add_book(my_library, book1)
     librarian.add_book(my_library, book2)
     
-    # View Books
-    print("Available books:")
+    # View summary
     borrower.view_books(my_library)
     
     # Borrow a Book
     borrower.borrow_book(my_library, book1)
-    
-    # Search for a Book
-    print("Searching for '1984':", Catalog.search_by_title(my_library, "1984"))
-    
+
     # Return a Book
     borrower.return_book(my_library)
+
+    # Käynnistä interaktiivinen hakusessio
+    interactive_search(my_library)
