@@ -102,19 +102,23 @@ class Library:
             with open("library_data.json", "r") as f:
                 data = json.load(f)
                 self.books = [Book(title, author, isbn) for title, author, isbn in data.get("books", [])]
-                self.borrowed_books = {int(user_id): (Book(title, author, isbn), datetime.strptime(due_date, '%Y-%m-%d'))
-                                       for user_id, (title, author, isbn, due_date) in data.get("borrowed_books", {}).items()}
+                self.borrowed_books = {
+                    int(user_id): (Book(title, author, isbn), datetime.strptime(due_date, '%Y-%m-%d'))
+                    for user_id, (title, author, isbn, due_date) in data.get("borrowed_books", {}).items()
+                }
         except FileNotFoundError:
             pass
 
-# Interactive search function
+# Interactive search and management
 def interactive_search(library):
     while True:
-        print("\nHae kirjaa:")
-        print("1. Hae nimen perusteella")
-        print("2. Hae kirjailijan perusteella")
+        print("\nValitse toiminto:")
+        print("1. Hae kirjaa nimen perusteella")
+        print("2. Hae kirjaa kirjailijan perusteella")
         print("3. Näytä kaikki kirjat")
-        print("4. Poistu")
+        print("4. Lisää uusi kirja")
+        print("5. Poista kirja")
+        print("6. Poistu")
         choice = input("Valinta: ")
 
         if choice == "1":
@@ -126,12 +130,40 @@ def interactive_search(library):
         elif choice == "3":
             results = library.books if library.books else "Ei kirjoja saatavilla."
         elif choice == "4":
-            print("Poistutaan hausta.")
+            title = input("Kirjan nimi: ")
+            author = input("Kirjailija: ")
+            isbn = input("ISBN: ")
+            new_book = Book(title, author, isbn)
+            library.books.append(new_book)
+            library.save_data()
+            print(f"Kirja '{title}' lisätty kirjastoon.")
+            continue
+        elif choice == "5":
+            if not library.books:
+                print("Kirjastossa ei ole kirjoja.")
+                continue
+            print("\nKirjat kirjastossa:")
+            for idx, book in enumerate(library.books, 1):
+                print(f"{idx}. {book}")
+            try:
+                selection = int(input("Anna poistettavan kirjan numero: "))
+                if 1 <= selection <= len(library.books):
+                    removed_book = library.books.pop(selection - 1)
+                    library.save_data()
+                    print(f"Kirja '{removed_book.title}' poistettu.")
+                else:
+                    print("Virheellinen numero.")
+            except ValueError:
+                print("Anna kelvollinen numero.")
+            continue
+        elif choice == "6":
+            print("Poistutaan valikosta.")
             break
         else:
             print("Virheellinen valinta.")
             continue
 
+        # Näytä hakutulokset
         if isinstance(results, list):
             if not results:
                 print("Ei tuloksia.")
@@ -161,14 +193,9 @@ if __name__ == "__main__":
     librarian.add_book(my_library, book1)
     librarian.add_book(my_library, book2)
     
-    # View summary
-    borrower.view_books(my_library)
-    
-    # Borrow a Book
+    # Borrow/Return examples
     borrower.borrow_book(my_library, book1)
-
-    # Return a Book
     borrower.return_book(my_library)
 
-    # Käynnistä interaktiivinen hakusessio
+    # Käynnistä interaktiivinen valikko
     interactive_search(my_library)
