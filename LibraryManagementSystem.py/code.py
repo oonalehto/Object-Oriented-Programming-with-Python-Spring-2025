@@ -107,7 +107,7 @@ class Library:
         except FileNotFoundError:
             pass
 
-# GUI
+
 def popup_ui(library):
     def search_books():
         query = simpledialog.askstring("Haku", "Anna kirjan nimi tai kirjailija:")
