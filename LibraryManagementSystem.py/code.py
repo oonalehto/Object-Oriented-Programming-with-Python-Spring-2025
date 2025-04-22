@@ -1,3 +1,7 @@
+
+## AUTHORS: Oona, Jonna & Rosa ##
+## PROJECT: Object-Oriented-Programming Spring 2025 ##
+
 import json
 from datetime import datetime, timedelta
 import tkinter as tk
