@@ -1,3 +1,7 @@
+## AUTRHORS: Oona, Jonna & Rosa ##
+## PROJECT: Object-Oriented Programming - Spring 2025 ##
+
+
 from book import Book
 from user import Librarian, Borrower
 from library import Library
