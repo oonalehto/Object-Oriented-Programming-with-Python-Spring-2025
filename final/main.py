@@ -10,7 +10,7 @@ from ui import popup_ui
 if __name__ == "__main__":
     my_library = Library()
 
-    # Creating users
+    # Käyttäjät
     librarian = Librarian("Tuomas", 1)
     borrower = Borrower("Oona", 2)
     borrower1 = Borrower("Jonna", 3)
